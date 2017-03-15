@@ -119,13 +119,17 @@ int list_len (struct list* list) {
  *    in  is an element from in_list
  */
 void list_map1 (void (*f) (element_t*, element_t), struct list* out_list, struct list* in_list) {
-  // TODO
-  for(int i = 0; i<list_len(in_list); i++){
-    element_t *out = malloc(sizeof(element_t));
-    f(out, list_get(in_list, i));
-    list_append(out_list, *out);
-    free(out);
-  }
+    
+    int sizeDif = in_list->len - out_list->len;
+    
+    if (sizeDif > 0) {
+        element_t* array;
+        array = malloc(sizeof(element_t[sizeDif]));
+        list_append_array(out_list, array, sizeDif);
+    }
+    for (int i = 0; i < in_list->len; i++) {
+        f(&out_list->data[i], in_list->data[i]);
+    }
 }
 
 /**
@@ -141,23 +145,23 @@ void list_map1 (void (*f) (element_t*, element_t), struct list* out_list, struct
  *    in1  is an element from in_list1
  */
 void list_map2 (void (*f) (element_t*, element_t, element_t), struct list* out_list, struct list* in_list0, struct list* in_list1) {
-  // TODO
-  int in_list_len = list_len(in_list);
-  int out_list_len = list_len(out_list);
-  int length;
-
-  if (in_list_len < out_list_len){
-    length = in_list_len;
-  } else {
-    length = out_list_len;
-  }
-
-  for(int i = 0; i<length; i++){
-    element_t *out = malloc(sizeof(element_t));
-    f(out, list_get(in_list0, i), list_get(in_list1, i));
-    list_append(out_list, *out);
-    free(out);
-  }
+    
+    int sizeDif0 = in_list0->len - out_list->len;
+    int sizeDif1 = in_list1->len - out_list->len;
+    int sizeDif;
+    
+    if (sizeDif0 < sizeDif1) sizeDif = sizeDif0;
+    else sizeDif = sizeDif1;
+    
+    if (sizeDif > 0) {
+        element_t* array;
+        array = malloc(sizeof(element_t[sizeDif]));
+        list_append_array(out_list, array, sizeDif);
+    }
+    for (int i = 0; i < sizeDif; i++) {
+        f(&out_list->data[i], in_list0->data[i], in_list1->data[i]);
+    }
+    
 }
 
 /**
@@ -169,9 +173,7 @@ void list_map2 (void (*f) (element_t*, element_t, element_t), struct list* out_l
  *    in0 is input value of he accumulator element
  *    in1 is an element from in_list
  */
-void list_foldl (void (*f) (element_t*, element_t, element_t), element_t* out_element_p,  struct list* in_list) {
-  // TODO
-    for(int i = 0; i<list_len(in_list); i++){
+void list_foldl (void (*f) (element_t*, element_t, element_t), element_t* out_element_p,  struct list* in_list) {    for(int i = 0; i<list_len(in_list); i++){
       element_t* x = list_get(in_list, i);
       f(out_element_p, *out_element_p, x);
 }
