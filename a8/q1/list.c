@@ -33,7 +33,7 @@ void list_destroy (struct list* l) {
 }
 
 /**
- * Expand the capacity of the list.
+ * Expand the capacity of the list.  
  * New size is old size times GROWTH_FACTOR.
  * Internal helper function.
  */
@@ -92,7 +92,7 @@ element_t list_get (struct list* list, int pos) {
 
 /**
  * Return the position (0..len-1) of e where equality
- * is established by equality function, which returns 1
+ * is established by equality function, which returns 1 
  * iff two objects are equal.
  */
 int list_index (struct list* list, element_t element, int (*equal) (element_t, element_t)) {
@@ -112,7 +112,7 @@ int list_len (struct list* list) {
 /**
  * Map function f(out,in) onto in_list placing results in out_list.
  * The lists in_list and out_list must not be the same list.
- * For f(out,in):
+ * For f(out,in): 
  *    out is pointer to an element that will be placed in out_list
  *        *out may be a pointer or an intptr_t
  *        if *out is a NULL pointer then f should allocate a new element and set *out to point to it
@@ -120,14 +120,8 @@ int list_len (struct list* list) {
  */
 void list_map1 (void (*f) (element_t*, element_t), struct list* out_list, struct list* in_list) {
     
-    int sizeDif = in_list->len - out_list->len;
-    
-    if (sizeDif > 0) {
-        element_t* array;
-        array = malloc(sizeof(element_t[sizeDif]));
-        list_append_array(out_list, array, sizeDif);
-    }
     for (int i = 0; i < in_list->len; i++) {
+        if (i>=out_list->len) list_insert(out_list, i, NULL);
         f(&out_list->data[i], in_list->data[i]);
     }
 }
@@ -145,20 +139,11 @@ void list_map1 (void (*f) (element_t*, element_t), struct list* out_list, struct
  *    in1  is an element from in_list1
  */
 void list_map2 (void (*f) (element_t*, element_t, element_t), struct list* out_list, struct list* in_list0, struct list* in_list1) {
-    
-    int sizeDif0 = in_list0->len - out_list->len;
-    int sizeDif1 = in_list1->len - out_list->len;
-    int sizeDif;
-    
-    if (sizeDif0 < sizeDif1) sizeDif = sizeDif0;
-    else sizeDif = sizeDif1;
-    
-    if (sizeDif > 0) {
-        element_t* array;
-        array = malloc(sizeof(element_t[sizeDif]));
-        list_append_array(out_list, array, sizeDif);
-    }
-    for (int i = 0; i < sizeDif; i++) {
+    int max;
+    if (in_list0->len < in_list1->len) max = in_list0->len;
+    else max = in_list1->len;
+    for (int i = 0; i < max; i++) {
+        if (i>=out_list->len) list_insert(out_list, i, NULL);
         f(&out_list->data[i], in_list0->data[i], in_list1->data[i]);
     }
     
@@ -173,9 +158,11 @@ void list_map2 (void (*f) (element_t*, element_t, element_t), struct list* out_l
  *    in0 is input value of he accumulator element
  *    in1 is an element from in_list
  */
-void list_foldl (void (*f) (element_t*, element_t, element_t), element_t* out_element_p,  struct list* in_list) {    for(int i = 0; i<list_len(in_list); i++){
-      element_t* x = list_get(in_list, i);
-      f(out_element_p, *out_element_p, x);
+void list_foldl (void (*f) (element_t*, element_t, element_t), element_t* out_element_p,  struct list* in_list) {
+    for(int i = 0; i<list_len(in_list); i++){
+        element_t* x = list_get(in_list, i);
+        f(out_element_p, *out_element_p, x);
+    }
 }
 
 /**
@@ -187,11 +174,13 @@ void list_foldl (void (*f) (element_t*, element_t, element_t), element_t* out_el
  *    returns true (1) iff in should be included in out_list and 0 otherwise
  */
 void list_filter (int (*f) (element_t), struct list* out_list, struct list* in_list) {
-  // TODO
-  for(int i = 0; i<list_len(in_list); i++){
-    element_t* x = list_get(in_list, i);
-    if (f(x) == 1){
-      list_append(out_list, x);
+    
+    for (int i=0; i<in_list->len; i++) {
+        if (f(in_list->data[i])) {
+            element_t newElement = in_list->data[i];
+            list_append(out_list, newElement);
+            
+        }
     }
 }
 
@@ -199,6 +188,10 @@ void list_filter (int (*f) (element_t), struct list* out_list, struct list* in_l
  * Execute function f for each element of list list.
  */
 void list_foreach (void (*f) (element_t), struct list* list) {
-  for (int i = 0; i < list->len; i++)
-    f (list->data [i]);
+    for (int i = 0; i < list->len; i++) {
+        f (list->data [i]);
+    }
 }
+
+
+

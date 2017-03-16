@@ -19,6 +19,7 @@ void returnString(element_t* dest, element_t arg1, element_t arg2) {
         return;
     }
     *dest = NULL;
+    free(arg2);
 }
 
 void getMax (element_t* rv, element_t av, element_t bv) {
@@ -29,6 +30,11 @@ void getMax (element_t* rv, element_t av, element_t bv) {
     intptr_t* r = *rv;
     if (*a>b) *r = *a;
     else *r = b;
+}
+
+void freeIfNotNumber(element_t e) {
+    if (strtol(e, NULL,0)) return;
+    free(e);
 }
 
 void truncateStrings(element_t* dest, element_t num, element_t string) {
@@ -46,6 +52,7 @@ void truncateStrings(element_t* dest, element_t num, element_t string) {
         i++;
     }
     j[i] = 0;
+    free(str);
     *dest = (element_t)j;
 }
 
@@ -75,21 +82,21 @@ int main(int argc, char *argv[]) {
     // Create a list and an array
     struct list* myList = list_create();
     element_t* arr;
-    // Malloc space for the array (must later free)
     arr = malloc((argc-1)*sizeof(element_t));
     
     // Copy the command line arguments to the array and make a list
     int i;
+    // balloon 3 make 2 a 3 seventeen 4
     for (i = 1; i < argc; i++) {
         char * j;
-        j = malloc(sizeof(char) * strlen(argv[i]));
-        arr[i-1] = (element_t*) strcpy(j, argv[i]);
+        j = malloc(sizeof(char) * (strlen(argv[i])+1));
+        arr[i-1] = (element_t) strcpy(j, argv[i]);
     }
     list_append_array(myList, arr, argc - 1);
     
     // Make number list
     struct list* numberList = list_create();
-    list_map1(returnInt, numberList, myList);
+    list_map1(returnInt, numberList, myList);   // Frees char* and replaces with int
     
     // Make string list
     struct list* stringList = list_create();
@@ -111,6 +118,10 @@ int main(int argc, char *argv[]) {
     list_foldl (getMax, (element_t*) &sp, filteredNumberList);
     printf ("%d\n", *sp);
     
+    
+    free(sp);
+    free(arr);
+    list_foreach(free, truncatedStrings);
     list_destroy(myList);
     list_destroy(numberList);
     list_destroy(stringList);
