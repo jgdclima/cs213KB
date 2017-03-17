@@ -119,11 +119,14 @@ int exec() {
         break;
       case 0xd: // j *o(rr) .............. droo
         // TODO
-		pc = mem [reg [insOp2 << 2] + reg [insOp0]];
+          ;
+          int a = ((insOp2 << 2) + reg[insOp0]);
+          pc = mem [a] << 24 | mem [a+1] << 16 | mem [a+2] << 8 | mem [a+3];
         break;
       case 0xe: // j*(rr,ri,4) ............. eri-
-        // TODO
-		pc = mem [reg [insOp0]] + reg [insOp1 << 2];
+          ;
+          int b = (reg[insOp0] + (reg[insOp1] << 2));
+          pc = mem [b] << 24 | mem [b+1] << 16 | mem [b+2] << 8 | mem [b+3];
         break;
       case 0xf: // halt or nop ............. f?--
         if (insOp0 == 0)
@@ -162,7 +165,7 @@ int loadFile (char* filename) {
       line += 2;
       addr += 1;
     }
-	line == NULL;
+    line = NULL;
   }
   fclose (f);
   return 1;
