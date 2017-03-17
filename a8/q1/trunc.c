@@ -15,18 +15,17 @@ void returnInt(element_t* dest, element_t arg) {
 
 void returnString(element_t* dest, element_t arg1, element_t arg2) {
     if ((intptr_t) arg1 == -1) {
-        *dest = arg2;
+        char* a;
+        a = malloc(sizeof(char)*(strlen(arg2)+1));
+        *dest = (element_t) strcpy(a, arg2);
         return;
     }
     *dest = NULL;
-    free(arg2);
 }
 
 void getMax (element_t* rv, element_t av, element_t bv) {
     intptr_t* a = av;
     intptr_t b = (intptr_t) bv;
-    if (*rv == NULL)
-        *rv = malloc (sizeof (intptr_t));
     intptr_t* r = *rv;
     if (*a>b) *r = *a;
     else *r = b;
@@ -40,20 +39,25 @@ void freeIfNotNumber(element_t e) {
 void truncateStrings(element_t* dest, element_t num, element_t string) {
     char* str = (char*) string;
     intptr_t n = (intptr_t) num;
-    if (strlen(str) <= n) {
-       *dest = string;
+    int length = strlen(string);
+    
+    if (length < n) {
+        char *a;
+        a = malloc(sizeof(char)*(length+1));
+        *dest = (element_t) strcpy(a,string);
         return;
     }
-    int i = 0;
-    char* j;
-    j = malloc(sizeof(char)*n+1);
-    while (i < n) {
-        j[i] = str[i];
-        i++;
+    else {
+        char *j;
+        int i = 0;
+        j = malloc(sizeof(char)*(n+1));
+        while (i < n) {
+            j[i] = str[i];
+            i++;
+        }
+        j[i] = 0;
+        *dest = (element_t) j;
     }
-    j[i] = 0;
-    free(str);
-    *dest = (element_t)j;
 }
 
 void printNumber(element_t e) {
@@ -79,6 +83,7 @@ int isNotNull(element_t e) {
 }
 
 int main(int argc, char *argv[]) {
+    
     // Create a list and an array
     struct list* myList = list_create();
     element_t* arr;
@@ -96,11 +101,14 @@ int main(int argc, char *argv[]) {
     
     // Make number list
     struct list* numberList = list_create();
-    list_map1(returnInt, numberList, myList);   // Frees char* and replaces with int
+    list_map1(returnInt, numberList, myList);
     
     // Make string list
     struct list* stringList = list_create();
     list_map2(returnString, stringList, numberList, myList);
+    
+    list_foreach(free, myList);
+    list_destroy(myList);
     
     struct list* filteredNumberList = list_create();
     struct list* filteredStringList = list_create();
@@ -113,20 +121,21 @@ int main(int argc, char *argv[]) {
     list_map2(truncateStrings, truncatedStrings, filteredNumberList, filteredStringList);
     list_foreach(printString, truncatedStrings);
     
+    
     int* sp = malloc (sizeof (int*));
-    *sp = 0;
+    *sp = 1;
     list_foldl (getMax, (element_t*) &sp, filteredNumberList);
     printf ("%d\n", *sp);
     
     
     free(sp);
     free(arr);
-    list_foreach(free, truncatedStrings);
-    list_destroy(myList);
     list_destroy(numberList);
-    list_destroy(stringList);
     list_destroy(filteredNumberList);
+    list_foreach(free, filteredStringList);
+    list_destroy(stringList);
     list_destroy(filteredStringList);
+    list_foreach(free, truncatedStrings);
     list_destroy(truncatedStrings);
     
 }
